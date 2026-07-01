@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L&F World Cup 2026 Master Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent-fav: #f59e0b;
+            --accent-und: #06b6d4;
+            --powerhouse: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .light-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .bracket-node {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bracket-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Player Color Specifications */
+        .player-Daniel { --player-color: 59, 130, 246; --player-hex: #3b82f6; }
+        .player-Yogun { --player-color: 168, 85, 247; --player-hex: #a855f7; }
+        .player-Budi { --player-color: 249, 115, 22; --player-hex: #f97316; }
+        .player-Fern { --player-color: 20, 184, 166; --player-hex: #14b8a6; }
+        .player-Jimmy { --player-color: 234, 179, 8; --player-hex: #eab308; }
+        .player-Weylen { --player-color: 244, 63, 94; --player-hex: #f43f5e; }
+        .player-None { --player-color: 148, 163, 184; --player-hex: #94a3b8; }
+
+        /* Screenshot exact layout items */
+        .team-badge-draft {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            cursor: grab;
+        }
+        .team-badge-draft.dragging { opacity: 0.4; }
+        .team-badge-draft.powerhouse { border-left: 4px solid var(--powerhouse); }
+        .team-badge-draft.favorite { border-left: 4px solid var(--accent-fav); }
+        .team-badge-draft.underdog { border-left: 4px solid var(--accent-und); }
+
+        .owner-badge {
+            background-color: rgba(var(--player-color), 0.1);
+            color: var(--player-hex);
+            border: 1px solid rgba(var(--player-color), 0.2);
+        }
+        
+        .eliminated-team {
+            opacity: 0.3 !important;
+            filter: grayscale(80%);
+            text-decoration: line-through;
+        }
+
+        .bracket-round-col {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        /* Screenshot Capsule Pill Tags */
+        .pool-pill {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            color: #475569;
+        }
+        .pool-pill.taken {
+            text-decoration: line-through;
+            opacity: 0.25;
+            background: #cbd5e1;
+        }
+
+        .card.drag-over {
+            background-color: #f0f7ff !important;
+            border-color: #3b82f6 !important;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation Bar -->
+    <header class="w-full light-panel rounded-none border-t-0 border-x-0 py-4 px-6 sticky top-0 z-40 shadow-sm bg-white">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="p-2.5 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-xl shadow-md shadow-blue-500/10">
+                    <span class="material-icons text-2xl text-white">analytics</span>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-900">
+                        L&F WORLD CUP 2026
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> 
+                        Grand Prize Pool: <span class="text-emerald-600 font-bold">1,500k IDR</span> (250k × 6 Players)
+                    </p>
+                </div>
+            </div>
+
+            <!-- View Swapping Navigation Tabs -->
+            <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center">
+                <button id="tab-draft" onclick="switchView('draft')" class="px-5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all bg-white text-blue-600 shadow-sm border border-slate-200/50">
+                    <span class="material-icons text-sm">assignment</span> Draft & Bets View
+                </button>
+                <button id="tab-bracket" onclick="switchView('bracket')" class="px-5 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all text-slate-600 hover:text-slate-900">
+                    <span class="material-icons text-sm">account_tree</span> Live Tournament Bracket
+                </button>
+            </div>
+
+            <!-- Contextual Operations Toolbar (Bracket Controls Hidden in Draft View) -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <div id="bracket-actions-bar" class="hidden flex items-center gap-2">
+                    <button id="live-sync-btn" onclick="toggleLiveAutoPlay()" class="flex items-center gap-2 py-2 px-3.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold border border-emerald-200 transition-all">
+                        <span class="material-icons text-sm" id="sync-icon">sync</span>
+                        <span id="sync-text">Start Auto-Live Simulation</span>
+                    </button>
+                    <button onclick="instantAutoResolve()" class="flex items-center gap-2 py-2 px-3.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold border border-indigo-200 transition-all">
+                        <span class="material-icons text-sm">flash_on</span>
+                        <span>Instant Auto-Resolve</span>
+                    </button>
+                    <button onclick="triggerResetBracketMatchesOnly()" class="flex items-center gap-2 py-2 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold border border-rose-200 transition-colors">
+                        <span class="material-icons text-sm">restart_alt</span>
+                        <span>Reset Matches Only</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Alert Banner for Live Ticker updates -->
+    <div id="live-notification-banner" class="hidden w-full bg-blue-600 text-white text-center py-2 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-2 shadow-sm z-30">
+        <span class="material-icons text-sm animate-bounce">podcasts</span>
+        <span id="live-notification-text">-</span>
+    </div>
+
+    <!-- MAIN VIEW AREA 1: SWEEPSTAKES DRAFT & BETTING PANELS -->
+    <div id="view-container-draft" class="flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6 flex flex-col gap-6">
+        
+        <!-- Screenshot Aligned Top Control Block -->
+        <div class="flex items-center justify-center gap-3">
+            <button onclick="generateNewRandomDraft()" class="flex items-center gap-2 py-2.5 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold border border-blue-700 shadow-sm transition-all">
+                🎲 Draw New Roster
+            </button>
+            <button onclick="resetToJuly1Baseline()" class="flex items-center gap-2 py-2.5 px-5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold border border-slate-300 shadow-sm transition-colors">
+                🔄 Reset to July 1 Baseline
+            </button>
+        </div>
+
+        <!-- 2-Column Main Workspace Structure -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <!-- Left 2 Columns: Roster Grid Matrix -->
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4" id="players-cards-container">
+                <!-- Loaded dynamically -->
+            </div>
+
+            <!-- Right Column: Sidebar Panels -->
+            <section class="lg:col-span-1 flex flex-col gap-6">
+                <!-- Side Bets Panel -->
+                <div class="card light-panel rounded-xl p-5 shadow-sm bg-white">
+                    <h2 class="text-md font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        🎲 Side Bets Tracker
+                    </h2>
+                    <div class="flex flex-col gap-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="bet-from" class="col-span-1 bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:outline-none focus:border-blue-500"></select>
+                            <select id="bet-to" class="col-span-1 bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:outline-none focus:border-blue-500"></select>
+                            <input type="text" id="bet-stake" class="col-span-1 bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 text-center font-medium focus:outline-none focus:border-blue-500" placeholder="Stake" value="50k">
+                        </div>
+                        <input type="text" id="bet-details" class="w-full bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2.5 focus:outline-none focus:border-blue-500" placeholder="Bet details (e.g., Brazil to reach finals...)">
+                        <button onclick="addSideBet()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-1">
+                            ➕ Add Side Bet
+                        </button>
+                    </div>
+                    <div id="side-bets-list" class="mt-4 space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Live Pool Tracking -->
+                <div class="card light-panel rounded-xl p-5 shadow-sm bg-white flex flex-col gap-4">
+                    <h2 class="text-md font-bold text-slate-800 border-b border-slate-100 pb-2">Live Pool Tracking</h2>
+                    <div class="pool-group">
+                        <h3 class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider" id="draft-pool-a-title">Pool A: Favorites (13)</h3>
+                        <div class="flex flex-wrap gap-1.5" id="draft-pool-a-tags"></div>
+                    </div>
+                    <div class="pool-group">
+                        <h3 class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider" id="draft-pool-b-title">Pool B: Underdogs (12)</h3>
+                        <div class="flex flex-wrap gap-1.5" id="draft-pool-b-tags"></div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="pool-group">
+                        <h3 class="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Quick Allocate Leftovers</h3>
+                        <div id="leftover-teams-injector" class="space-y-2 max-h-[160px] overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- MAIN VIEW AREA 2: INTERACTIVE TOURNAMENT BRACKET & TREE MAP -->
+    <main id="view-container-bracket" class="hidden flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left Column: Checklist Matrix -->
+        <section class="lg:col-span-1 flex flex-col gap-6">
+            <div class="light-panel rounded-xl p-5 shadow-sm bg-white flex flex-col h-[calc(100vh-220px)] sticky top-24">
+                <div class="mb-3 border-b border-slate-200 pb-3">
+                    <h2 class="text-md font-bold text-slate-800 flex items-center gap-2">
+                        <span class="material-icons text-blue-500 text-lg">sports_soccer</span> Live Status Checklist
+                    </h2>
+                    <p class="text-[10px] text-slate-500 font-medium uppercase mt-0.5" id="live-counter-stats">-</p>
+                </div>
+                <div class="mb-3">
+                    <select id="player-roster-filter" onchange="filterRosterByPlayer(this.value)" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-lg p-2 focus:outline-none focus:border-blue-500">
+                        <option value="All">All Players (Show All)</option>
+                        <option value="Daniel">Daniel</option>
+                        <option value="Yogun">Yogun</option>
+                        <option value="Budi">Budi</option>
+                        <option value="Fern">Fern</option>
+                        <option value="Jimmy">Jimmy</option>
+                        <option value="Weylen">Weylen</option>
+                    </select>
+                </div>
+                <div id="roster-matrix-container" class="flex-grow overflow-y-auto space-y-1.5 pr-1"></div>
+            </div>
+        </section>
+
+        <!-- Right Column: Bracket System Map Chart -->
+        <section class="lg:col-span-3 flex flex-col gap-6">
+            <div class="light-panel rounded-xl p-5 shadow-sm bg-white overflow-hidden">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="material-icons text-indigo-500">account_tree</span>
+                        <h2 class="text-md font-bold text-slate-800 uppercase tracking-wider">World Cup 2026 Bracket Map</h2>
+                    </div>
+                    <div class="text-[9px] text-slate-500 font-extrabold uppercase bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                        Click any Node card map to record score results manually[cite: 1]
+                    </div>
+                </div>
+                <div class="w-full overflow-x-auto py-2">
+                    <div class="flex gap-6 min-w-[1280px] justify-between px-2">
+                        <div class="bracket-round-col w-[240px]">
+                            <h3 class="text-center font-bold text-xs tracking-widest text-slate-400 uppercase mb-4">Round of 32</h3>
+                            <div class="flex flex-col gap-4 justify-between h-full" id="r32-col"></div>
+                        </div>
+                        <div class="bracket-round-col w-[240px]">
+                            <h3 class="text-center font-bold text-xs tracking-widest text-slate-400 uppercase mb-4">Round of 16</h3>
+                            <div class="flex flex-col gap-8 justify-around h-full" id="r16-col"></div>
+                        </div>
+                        <div class="bracket-round-col w-[240px]">
+                            <h3 class="text-center font-bold text-xs tracking-widest text-slate-400 uppercase mb-4">Quarterfinals</h3>
+                            <div class="flex flex-col gap-16 justify-around h-full" id="qf-col"></div>
+                        </div>
+                        <div class="bracket-round-col w-[240px]">
+                            <h3 class="text-center font-bold text-xs tracking-widest text-slate-400 uppercase mb-4">Semifinals</h3>
+                            <div class="flex flex-col gap-32 justify-around h-full" id="sf-col"></div>
+                        </div>
+                        <div class="bracket-round-col w-[240px] justify-center gap-8">
+                            <h3 class="text-center font-bold text-xs tracking-widest text-slate-400 uppercase mb-4">Championship</h3>
+                            <div class="w-full text-center p-4 bg-gradient-to-b from-amber-500/10 to-amber-500/0 border border-amber-200 rounded-2xl shadow-sm flex flex-col items-center gap-2 relative overflow-hidden" id="champion-crown-spot">
+                                <span class="material-icons text-3xl text-amber-500 animate-bounce">workspace_premium</span>
+                                <div class="text-[10px] tracking-widest text-amber-600 font-extrabold uppercase">WORLD CHAMPION</div>
+                                <div id="champ-display-team" class="text-lg font-black text-slate-900">-</div>
+                                <div id="champ-display-owner" class="text-[10px] px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold uppercase border border-slate-200">-</div>
+                            </div>
+                            <div class="w-full" id="final-col"></div>
+                            <div class="w-full" id="third-place-col"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL POPUP WINDOW: Score Modifier Overlay[cite: 1] -->
+    <div id="score-editor-modal" class="fixed inset-0 bg-slate-900/40 backdrop-filter backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="light-panel w-full max-w-md rounded-2xl p-6 shadow-xl bg-white relative border border-slate-200">
+            <button onclick="closeScoreEditor()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <span class="material-icons text-xl">close</span>
+            </button>
+            <div class="text-center mb-6">
+                <div id="modal-match-id" class="text-xs font-bold tracking-widest text-slate-400 uppercase">MATCH #00</div>
+                <h3 id="modal-match-title" class="text-lg font-black text-slate-800 mt-1">Record Match Score</h3>
+            </div>
+            <form id="score-editor-form" onsubmit="saveScoreResults(event)">
+                <input type="hidden" id="editor-match-index">
+                <div class="grid grid-cols-5 items-center gap-4 mb-6">
+                    <div class="col-span-2 text-center flex flex-col items-center gap-2">
+                        <div id="editor-t1-badge" class="px-2 py-0.5 text-[9px] rounded font-extrabold uppercase">Owner</div>
+                        <div id="editor-t1-name" class="font-bold text-slate-800 text-sm truncate w-full">Team 1</div>
+                        <input type="number" id="editor-t1-score" min="0" required class="w-16 text-center bg-slate-50 border-2 border-slate-200 text-slate-800 font-extrabold text-xl rounded-lg p-2 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div class="col-span-1 text-center font-black text-slate-400 text-sm">VS</div>
+                    <div class="col-span-2 text-center flex flex-col items-center gap-2">
+                        <div id="editor-t2-badge" class="px-2 py-0.5 text-[9px] rounded font-extrabold uppercase">Owner</div>
+                        <div id="editor-t2-name" class="font-bold text-slate-800 text-sm truncate w-full">Team 2</div>
+                        <input type="number" id="editor-t2-score" min="0" required class="w-16 text-center bg-slate-50 border-2 border-slate-200 text-slate-800 font-extrabold text-xl rounded-lg p-2 focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col gap-3 mb-6">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-xs font-bold text-slate-600">Match extended to Extra Time (AET)?</span>
+                        <input type="checkbox" id="editor-match-aet" class="w-4 h-4 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                    </label>
+                    <div class="border-t border-slate-200 pt-3 flex flex-col gap-3">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-xs font-bold text-slate-600">Decided via Penalty Shootout (PSO)?</span>
+                            <input type="checkbox" id="editor-match-pso" onchange="togglePsoFields(this.checked)" class="w-4 h-4 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                        </label>
+                        <div id="pso-scores-container" class="grid grid-cols-2 gap-4 hidden">
+                            <div>
+                                <label class="block text-[8px] font-black text-slate-400 uppercase mb-1">T1 Pen Goals</label>
+                                <input type="number" id="editor-t1-pso-score" min="0" class="w-full bg-white border border-slate-200 rounded-lg p-1 text-center text-xs text-slate-800 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] font-black text-slate-400 uppercase mb-1">T2 Pen Goals</label>
+                                <input type="number" id="editor-t2-pso-score" min="0" class="w-full bg-white border border-slate-200 rounded-lg p-1 text-center text-xs text-slate-800 font-bold">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="closeScoreEditor()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-lg text-xs">Cancel</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs">Confirm Score</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const players = ["Daniel", "Yogun", "Budi", "Fern", "Jimmy", "Weylen"];
+
+        const powerhouses = ["Brazil", "Spain", "France", "England", "Portugal", "Argentina"];
+        const restFavorites = ["Belgium", "Colombia", "Croatia", "Mexico", "USA", "Morocco", "Switzerland"];
+        const underdogs = ["Canada", "Paraguay", "Senegal", "Austria", "Algeria", "Ghana", "Australia", "Egypt", "Norway", "Congo DR", "Bosnia and Herzegovina", "Cabo Verde"];
+
+        const allTeamsMeta = {};
+        powerhouses.forEach(t => allTeamsMeta[t] = 'powerhouse');
+        restFavorites.forEach(t => allTeamsMeta[t] = 'favorite');
+        underdogs.forEach(t => allTeamsMeta[t] = 'underdog');
+
+        const NEUTRAL_TEAMS = ["Germany", "Netherlands", "Japan", "South Africa"];
+        NEUTRAL_TEAMS.forEach(t => allTeamsMeta[t] = 'neutral');
+
+        const baselineDrawState = {
+            "Daniel": [
+                { name: "Brazil", type: "powerhouse" }, { name: "Morocco", type: "favorite" },
+                { name: "Bosnia and Herzegovina", type: "underdog" }, { name: "Congo DR", type: "underdog" }
+            ],
+            "Yogun": [
+                { name: "England", type: "powerhouse" }, { name: "Egypt", type: "underdog" },
+                { name: "Norway", type: "underdog" }, { name: "Senegal", type: "underdog" }
+            ],
+            "Budi": [
+                { name: "Portugal", type: "powerhouse" }, { name: "Mexico", type: "favorite" },
+                { name: "USA", type: "favorite" }, { name: "Australia", type: "underdog" },
+                { name: "Cabo Verde", type: "underdog" }
+            ],
+            "Fern": [
+                { name: "Argentina", type: "powerhouse" }, { name: "Croatia", type: "favorite" },
+                { name: "Algeria", type: "underdog" }
+            ],
+            "Jimmy": [
+                { name: "Spain", type: "powerhouse" }, { name: "Colombia", type: "favorite" },
+                { name: "Austria", type: "underdog" }, { name: "Canada", type: "underdog" }
+            ],
+            "Weylen": [
+                { name: "France", type: "powerhouse" }, { name: "Belgium", type: "favorite" },
+                { name: "Switzerland", type: "favorite" }, { name: "Ghana", type: "underdog" },
+                { name: "Paraguay", type: "underdog" }
+            ]
+        };
+
+        const MATCHES_TEMPLATE = [
+            { id: 73, round: 'R32', t1: "South Africa", t2: "Canada", s1: 0, s2: 1, aet: false, pso: false, p1: null, p2: null, status: 'completed', nextId: 90, nextSpot: 't1' },
+            { id: 74, round: 'R32', t1: "Germany", t2: "Paraguay", s1: 1, s2: 1, aet: true, pso: true, p1: 3, p2: 4, status: 'completed', nextId: 89, nextSpot: 't1' },
+            { id: 75, round: 'R32', t1: "Netherlands", t2: "Morocco", s1: 1, s2: 1, aet: true, pso: true, p1: 2, p2: 3, status: 'completed', nextId: 90, nextSpot: 't2' },
+            { id: 76, round: 'R32', t1: "Brazil", t2: "Japan", s1: 2, s2: 1, aet: false, pso: false, p1: null, p2: null, status: 'completed', nextId: 91, nextSpot: 't1' },
+            { id: 77, round: 'R32', t1: "France", t2: "Sweden", s1: 3, s2: 0, aet: false, pso: false, p1: null, p2: null, status: 'completed', nextId: 89, nextSpot: 't2' },
+            { id: 78, round: 'R32', t1: "Côte d'Ivoire", t2: "Norway", s1: 1, s2: 2, aet: false, pso: false, p1: null, p2: null, status: 'completed', nextId: 91, nextSpot: 't2' },
+            { id: 79, round: 'R32', t1: "Mexico", t2: "Ecuador", s1: 2, s2: 0, aet: false, pso: false, p1: null, p2: null, status: 'completed', nextId: 92, nextSpot: 't1' },
+            { id: 80, round: 'R32', t1: "England", t2: "Congo DR", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 92, nextSpot: 't2' },
+            { id: 81, round: 'R32', t1: "USA", t2: "Bosnia and Herzegovina", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 94, nextSpot: 't1' },
+            { id: 82, round: 'R32', t1: "Belgium", t2: "Senegal", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 94, nextSpot: 't2' },
+            { id: 83, round: 'R32', t1: "Portugal", t2: "Croatia", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 93, nextSpot: 't1' },
+            { id: 84, round: 'R32', t1: "Spain", t2: "Austria", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 93, nextSpot: 't2' },
+            { id: 85, round: 'R32', t1: "Switzerland", t2: "Algeria", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 96, nextSpot: 't1' },
+            { id: 86, round: 'R32', t1: "Argentina", t2: "Cabo Verde", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 95, nextSpot: 't1' },
+            { id: 87, round: 'R32', t1: "Colombia", t2: "Ghana", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 96, nextSpot: 't2' },
+            { id: 88, round: 'R32', t1: "Australia", t2: "Egypt", s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 95, nextSpot: 't2' },
+
+            { id: 89, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 97, nextSpot: 't1' },
+            { id: 90, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 97, nextSpot: 't2' },
+            { id: 91, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 99, nextSpot: 't1' },
+            { id: 92, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 99, nextSpot: 't2' },
+            { id: 93, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 98, nextSpot: 't1' },
+            { id: 94, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 98, nextSpot: 't2' },
+            { id: 95, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 100, nextSpot: 't1' },
+            { id: 96, round: 'R16', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 100, nextSpot: 't2' },
+
+            { id: 97, round: 'QF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 101, nextSpot: 't1' },
+            { id: 98, round: 'QF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 101, nextSpot: 't2' },
+            { id: 99, round: 'QF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 102, nextSpot: 't1' },
+            { id: 100, round: 'QF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 102, nextSpot: 't2' },
+
+            { id: 101, round: 'SF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 104, nextSpot: 't1', loserNextId: 103, loserNextSpot: 't1' },
+            { id: 102, round: 'SF', t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming', nextId: 104, nextSpot: 't2', loserNextId: 103, loserNextSpot: 't2' },
+
+            { id: 103, round: 'Final', isBronze: true, t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming' },
+            { id: 104, round: 'Final', isBronze: false, t1: null, t2: null, s1: null, s2: null, aet: false, pso: false, p1: null, p2: null, status: 'upcoming' }
+        ];
+
+        let currentDraftState = {};
+        let matches = [];
+        let sideBets = [];
+        
+        let TEAM_OWNER_MAP = {}; 
+        let selectedRosterPlayer = 'All';
+        let autoPlayInterval = null;
+        let isSimulating = false;
+        let draggedTeamData = null;
+
+        function switchView(viewName) {
+            if (viewName === 'draft') {
+                document.getElementById('view-container-draft').classList.remove('hidden');
+                document.getElementById('view-container-bracket').classList.add('hidden');
+                document.getElementById('bracket-actions-bar').classList.add('hidden');
+                document.getElementById('tab-draft').className = "px-5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all bg-white text-blue-600 shadow-sm border border-slate-200";
+                document.getElementById('tab-bracket').className = "px-5 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all text-slate-600 hover:text-slate-900";
+            } else {
+                document.getElementById('view-container-draft').classList.add('hidden');
+                document.getElementById('view-container-bracket').classList.remove('hidden');
+                document.getElementById('bracket-actions-bar').classList.remove('hidden');
+                document.getElementById('tab-draft').className = "px-5 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all text-slate-600 hover:text-slate-900";
+                document.getElementById('tab-bracket').className = "px-5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all bg-white text-blue-600 shadow-sm border border-slate-200";
+            }
+        }
+
+        function shuffle(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('lf_master_draftState_v2', JSON.stringify(currentDraftState));
+            localStorage.setItem('lf_master_matches_v2', JSON.stringify(matches));
+            localStorage.setItem('lf_master_sideBets_v2', JSON.stringify(sideBets));
+        }
+
+        function initGlobalDashboard() {
+            const cachedDraft = localStorage.getItem('lf_master_draftState_v2');
+            const cachedMatches = localStorage.getItem('lf_master_matches_v2');
+            const cachedBets = localStorage.getItem('lf_master_sideBets_v2');
+
+            if (cachedDraft && cachedMatches) {
+                currentDraftState = JSON.parse(cachedDraft);
+                matches = JSON.parse(cachedMatches);
+                sideBets = cachedBets ? JSON.parse(cachedBets) : [];
+            } else {
+                currentDraftState = JSON.parse(JSON.stringify(baselineDrawState));
+                matches = JSON.parse(JSON.stringify(MATCHES_TEMPLATE));
+                sideBets = [];
+            }
+
+            rebuildOwnerMapLinks();
+            propagateBracketAllRounds();
+            
+            renderDraftViewCards();
+            setupBettingDropdowns();
+            renderSideBetsLedger();
+            syncDraftSideTrackingMetrics();
+
+            renderRosterMatrix();
+            renderBracketView();
+            initTeamDragAndDrop();
+        }
+
+        function rebuildOwnerMapLinks() {
+            TEAM_OWNER_MAP = {};
+            for (const [owner, list] of Object.entries(currentDraftState)) {
+                list.forEach(t => { TEAM_OWNER_MAP[t.name] = owner; });
+            }
+            NEUTRAL_TEAMS.forEach(t => { TEAM_OWNER_MAP[t] = "None"; });
+        }
+
+        function renderDraftViewCards() {
+            const container = document.getElementById("players-cards-container");
+            container.innerHTML = '';
+            players.forEach(p => {
+                const list = currentDraftState[p] || [];
+                const wrapper = document.createElement('div');
+                wrapper.className = "card light-panel p-5 bg-white shadow-sm flex flex-col gap-3";
+                wrapper.id = `draft-player-${p}`;
+                
+                wrapper.innerHTML = `
+                    <h2 class="text-sm font-bold flex items-center justify-between border-b border-slate-100 pb-2 text-slate-800">
+                        <span class="flex items-center gap-1.5"><span class="material-icons text-slate-400 text-sm">person</span>${p}</span>
+                        <span class="text-xs text-slate-400 font-medium font-mono">${list.length} teams</span>
+                    </h2>
+                    <div class="team-list gap-2 flex flex-col" id="draft-list-${p}"></div>
+                    <div class="manual-add-zone flex items-center gap-1.5 mt-2 pt-2 border-t border-dashed border-slate-100">
+                        <select id="select-add-${p}" class="flex-grow bg-white border border-slate-200 text-slate-800 text-xs rounded-lg p-2 focus:outline-none focus:border-blue-500">
+                            <option value="">-- Add Team Manually --</option>
+                        </select>
+                        <button onclick="injectTeamToPlayer('${p}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-0.5">➕ Add</button>
+                    </div>
+                `;
+                container.appendChild(wrapper);
+
+                const optionsSelect = document.getElementById(`select-add-${p}`);
+                Object.keys(allTeamsMeta).sort().forEach(t => {
+                    if (allTeamsMeta[t] !== 'neutral' && !(TEAM_OWNER_MAP[t] && TEAM_OWNER_MAP[t] !== 'None')) {
+                        optionsSelect.innerHTML += `<option value="${t}">${t}</option>`;
+                    }
+                });
+
+                const listDiv = document.getElementById(`draft-list-${p}`);
+                list.forEach(team => {
+                    const badge = document.createElement('div');
+                    badge.className = `team-badge-draft ${team.type}`;
+                    badge.setAttribute('draggable', 'true');
+                    
+                    let typeLabel = team.type.toUpperCase();
+                    if(team.type === 'powerhouse') typeLabel = '⭐ ELITE';
+
+                    badge.innerHTML = `
+                        <span class="text-xs font-semibold text-slate-800">${team.name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-bold text-slate-400 tracking-wider">${typeLabel}</span>
+                            <button class="text-red-500 font-bold hover:text-red-700 text-sm font-mono leading-none" onclick="removeTeamFromPlayer('${p}', '${team.name}')">×</button>
+                        </div>
+                    `;
+
+                    badge.addEventListener('dragstart', () => {
+                        badge.classList.add('dragging');
+                        draggedTeamData = { originPlayer: p, teamName: team.name, type: team.type };
+                    });
+                    badge.addEventListener('dragend', () => {
+                        badge.classList.remove('dragging');
+                        draggedTeamData = null;
+                    });
+                    listDiv.appendChild(badge);
+                });
+            });
+        }
+
+        function setupBettingDropdowns() {
+            const fromSel = document.getElementById('bet-from');
+            const toSel = document.getElementById('bet-to');
+            fromSel.innerHTML = '<option value="">Bettor...</option>';
+            toSel.innerHTML = '<option value="">Against...</option>';
+            players.forEach(p => {
+                fromSel.innerHTML += `<option value="${p}">${p}</option>`;
+                toSel.innerHTML += `<option value="${p}">${p}</option>`;
+            });
+        }
+
+        function addSideBet() {
+            const from = document.getElementById('bet-from').value;
+            const to = document.getElementById('bet-to').value;
+            const stake = document.getElementById('bet-stake').value;
+            const details = document.getElementById('bet-details').value;
+
+            if (!from || !to || !stake || from === to) {
+                alert("Please select players correctly and fill in your stakes!");
+                return;
+            }
+
+            sideBets.push({ from, to, stake, details: details || "General Matchup Bet" });
+            document.getElementById('bet-details').value = '';
+            saveToLocalStorage();
+            renderSideBetsLedger();
+        }
+
+        function removeSideBet(index) {
+            sideBets.splice(index, 1);
+            saveToLocalStorage();
+            renderSideBetsLedger();
+        }
+
+        function renderSideBetsLedger() {
+            const container = document.getElementById('side-bets-list');
+            if (sideBets.length === 0) {
+                container.innerHTML = `<div class="text-slate-400 italic text-[11px] text-center py-2">No active side bets tracked yet.</div>`;
+                return;
+            }
+            container.innerHTML = '';
+            sideBets.forEach((bet, idx) => {
+                container.innerHTML += `
+                    <div class="bet-item flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs shadow-3xs">
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-bold text-slate-800">⚔️ ${bet.from} vs ${bet.to}</span>
+                            <span class="text-[10px] text-slate-500 italic">${bet.details}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] px-2 py-0.5 rounded-md font-bold">${bet.stake}</span>
+                            <button onclick="removeSideBet(${idx})" class="text-rose-500 font-bold hover:text-rose-600">×</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function syncDraftSideTrackingMetrics() {
+            const takenP = []; const takenF = []; const takenU = [];
+            players.forEach(p => {
+                (currentDraftState[p] || []).forEach(t => {
+                    if (t.type === 'powerhouse') takenP.push(t.name);
+                    if (t.type === 'favorite') takenF.push(t.name);
+                    if (t.type === 'underdog') takenU.push(t.name);
+                });
+            });
+
+            const totalA = powerhouses.length + restFavorites.length;
+            const totalB = underdogs.length;
+
+            document.getElementById('draft-pool-a-title').textContent = `Pool A: Favorites (${totalA})`;
+            document.getElementById('draft-pool-b-title').textContent = `Pool B: Underdogs (${totalB})`;
+
+            const aTags = document.getElementById('draft-pool-a-tags');
+            aTags.innerHTML = '';
+            powerhouses.forEach(t => { aTags.innerHTML += `<span class="pool-pill ${takenP.includes(t) ? 'taken' : ''}">${t}</span>` });
+            restFavorites.forEach(t => { aTags.innerHTML += `<span class="pool-pill ${takenF.includes(t) ? 'taken' : ''}">${t}</span>` });
+
+            const bTags = document.getElementById('draft-pool-b-tags');
+            bTags.innerHTML = '';
+            underdogs.forEach(t => { bTags.innerHTML += `<span class="pool-pill ${takenU.includes(t) ? 'taken' : ''}">${t}</span>` });
+
+            const remF = restFavorites.filter(t => !takenF.includes(t));
+            const remU = underdogs.filter(t => !takenU.includes(t));
+            const injector = document.getElementById('leftover-teams-injector');
+            injector.innerHTML = '';
+
+            if(remF.length === 0 && remU.length === 0) {
+                injector.innerHTML = `<div class="text-[11px] text-slate-400 italic">All teams allocated cleanly!</div>`;
+                return;
+            }
+
+            remF.forEach(t => injector.appendChild(createLeftoverDropdownRow(t, 'manual-fav')));
+            remU.forEach(t => injector.appendChild(createLeftoverDropdownRow(t, 'manual-und')));
+        }
+
+        function createLeftoverDropdownRow(team, targetClass) {
+            const div = document.createElement('div');
+            div.className = "leftover-item text-xs flex items-center justify-between p-1.5 bg-slate-50 rounded-lg border border-slate-200";
+            let optHtml = `<option value="">Unassigned</option>`;
+            players.forEach(p => { optHtml += `<option value="${p}">${p}</option>`; });
+            div.innerHTML = `<span><strong class="text-slate-700">${team}</strong></span><select onchange="assignLeftoverFromSidebar('${team}', this.value, '${targetClass}')" class="bg-white border border-slate-200 rounded p-1 text-3xs text-slate-800">${optHtml}</select>`;
+            return div;
+        }
+
+        function assignLeftoverFromSidebar(teamName, targetPlayer, targetClass) {
+            players.forEach(p => { currentDraftState[p] = currentDraftState[p].filter(t => t.name !== teamName); });
+            if (targetPlayer) {
+                let actualType = targetClass === 'manual-fav' ? 'favorite' : 'underdog';
+                currentDraftState[targetPlayer].push({ name: teamName, type: actualType });
+            }
+            refreshDataStatePipelines();
+        }
+
+        function injectTeamToPlayer(player) {
+            const sel = document.getElementById(`select-add-${player}`);
+            if (!sel || !sel.value) return;
+            const team = sel.value;
+            const actualType = allTeamsMeta[team];
+            currentDraftState[player].push({ name: team, type: actualType });
+            refreshDataStatePipelines();
+        }
+
+        function removeTeamFromPlayer(player, teamName) {
+            currentDraftState[player] = currentDraftState[player].filter(t => t.name !== teamName);
+            refreshDataStatePipelines();
+        }
+
+        function generateNewRandomDraft() {
+            if(!confirm("Are you sure you want to completely redraw random rosters? All manual updates will be cleared.")) return;
+            const sP = shuffle(powerhouses); const sF = shuffle(restFavorites); const sU = shuffle(underdogs);
+            players.forEach(p => currentDraftState[p] = []);
+            players.forEach((p, i) => { currentDraftState[p].push({ name: sP[i], type: 'powerhouse' }); });
+            players.forEach((p, i) => { currentDraftState[p].push({ name: sF[i], type: 'favorite' }); });
+            let idx = 0;
+            players.forEach(p => {
+                currentDraftState[p].push({ name: sU[idx++], type: 'underdog' });
+                currentDraftState[p].push({ name: sU[idx++], type: 'underdog' });
+            });
+            refreshDataStatePipelines();
+        }
+
+        function resetToJuly1Baseline() {
+            if(!confirm("Reset draft roster layouts back to screenshot baseline standards?")) return;
+            currentDraftState = JSON.parse(JSON.stringify(baselineDrawState));
+            refreshDataStatePipelines();
+        }
+
+        function refreshDataStatePipelines() {
+            rebuildOwnerMapLinks();
+            propagateBracketAllRounds();
+            saveToLocalStorage();
+            renderDraftViewCards();
+            syncDraftSideTrackingMetrics();
+            renderRosterMatrix();
+            renderBracketView();
+        }
+
+        function getEliminatedTeams() {
+            const eliminated = new Set();
+            matches.forEach(m => {
+                if (m.status === 'completed') {
+                    const loser = getMatchLoserName(m);
+                    if (loser) eliminated.add(loser);
+                }
+            });
+            const finalMatch = matches.find(m => m.round === 'Final' && !m.isBronze);
+            if (finalMatch && finalMatch.status === 'completed') {
+                const winner = getMatchWinnerName(finalMatch);
+                if (winner) eliminated.delete(winner);
+            }
+            return eliminated;
+        }
+
+        function getMatchWinnerName(match) {
+            if (match.status !== 'completed') return null;
+            if (match.pso) return match.p1 > match.p2 ? match.t1 : match.t2;
+            return match.s1 > match.s2 ? match.t1 : match.t2;
+        }
+
+        function getMatchLoserName(match) {
+            if (match.status !== 'completed') return null;
+            if (match.pso) return match.p1 > match.p2 ? match.t2 : match.t1;
+            return match.s1 > match.s2 ? match.t2 : match.t1;
+        }
+
+        function propagateBracketAllRounds() {
+            matches.forEach(m => { if (m.round !== 'R32') { m.t1 = null; m.t2 = null; } });
+            const rounds = ['R32', 'R16', 'QF', 'SF'];
+            rounds.forEach(round => {
+                matches.filter(m => m.round === round).forEach(match => {
+                    if (match.status === 'completed') {
+                        const winner = getMatchWinnerName(match);
+                        const loser = getMatchLoserName(match);
+                        if (match.nextId) {
+                            const target = matches.find(m => m.id === match.nextId);
+                            if (target) {
+                                if (match.nextSpot === 't1') target.t1 = winner;
+                                else target.t2 = winner;
+                            }
+                        }
+                        if (match.round === 'SF' && match.loserNextId) {
+                            const target = matches.find(m => m.id === match.loserNextId);
+                            if (target) {
+                                if (match.loserNextSpot === 't1') target.t1 = loser;
+                                else target.t2 = loser;
+                            }
+                        }
+                    }
+                });
+            });
+
+            matches.forEach(m => {
+                if (m.round !== 'R32') {
+                    if (m.t1 && m.t2) { if (m.status !== 'completed') m.status = 'upcoming'; } 
+                    else {
+                        m.status = 'upcoming'; m.s1 = null; m.s2 = null; m.p1 = null; m.p2 = null; m.aet = false; m.pso = false;
+                    }
+                }
+            });
+        }
+
+        function filterRosterByPlayer(value) {
+            selectedRosterPlayer = value;
+            renderRosterMatrix();
+        }
+
+        function renderRosterMatrix() {
+            const container = document.getElementById("roster-matrix-container");
+            container.innerHTML = "";
+            const eliminatedSet = getEliminatedTeams();
+            let totalContenders = 28;
+            let deadCount = eliminatedSet.size;
+
+            document.getElementById("live-counter-stats").textContent = `${totalContenders} Teams • ${deadCount} Eliminated • ${totalContenders - deadCount} Alive`;
+
+            for (const player of players) {
+                if (selectedRosterPlayer !== 'All' && selectedRosterPlayer !== player) continue;
+                const list = currentDraftState[player] || [];
+
+                list.forEach(team => {
+                    const isEliminated = eliminatedSet.has(team.name);
+                    const item = document.createElement("div");
+                    item.className = `p-2 rounded-lg text-xs flex items-center justify-between bg-white border border-slate-200 shadow-3xs transition-all ${isEliminated ? 'eliminated-team' : ''}`;
+                    
+                    const pBadge = allTeamsMeta[team.name] === 'powerhouse'
+                        ? `<span class="text-[8px] bg-rose-50 text-rose-600 border border-rose-200 px-1 py-0.2 rounded font-bold uppercase">Elite</span>`
+                        : (allTeamsMeta[team.name] === 'favorite'
+                            ? `<span class="text-[8px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.2 rounded font-bold uppercase">Pool A</span>`
+                            : `<span class="text-[8px] bg-cyan-50 text-cyan-600 border border-cyan-200 px-1 py-0.2 rounded font-bold uppercase">Pool B</span>`);
+
+                    item.innerHTML = `
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="inline-block w-2 h-2 rounded-full player-${player} bg-current"></span>
+                            <span class="font-bold text-slate-800 truncate">${team.name}</span>
+                            ${pBadge}
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px]">
+                            <span class="text-slate-400 font-medium uppercase">${player}</span>
+                            ${isEliminated ? '<span class="text-rose-500 font-extrabold">DEAD</span>' : '<span class="text-emerald-600 font-extrabold tracking-wider animate-pulse">ALIVE</span>'}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        function renderBracketView() {
+            const eliminatedSet = getEliminatedTeams();
+            renderColumnNodes("R32", "r32-col", eliminatedSet);
+            renderColumnNodes("R16", "r16-col", eliminatedSet);
+            renderColumnNodes("QF", "qf-col", eliminatedSet);
+            renderColumnNodes("SF", "sf-col", eliminatedSet);
+
+            const finalCol = document.getElementById("final-col"); finalCol.innerHTML = "";
+            const finalMatch = matches.find(m => m.round === 'Final' && !m.isBronze);
+            finalCol.appendChild(buildMatchNode(finalMatch, eliminatedSet));
+
+            const thirdCol = document.getElementById("third-place-col"); thirdCol.innerHTML = "";
+            const bronzeMatch = matches.find(m => m.round === 'Final' && m.isBronze);
+            thirdCol.appendChild(buildMatchNode(bronzeMatch, eliminatedSet));
+
+            const champTeamDisplay = document.getElementById("champ-display-team");
+            const champOwnerDisplay = document.getElementById("champ-display-owner");
+            if (finalMatch && finalMatch.status === 'completed') {
+                const champName = getMatchWinnerName(finalMatch);
+                champTeamDisplay.textContent = champName;
+                champOwnerDisplay.textContent = TEAM_OWNER_MAP[champName] !== 'None' ? `Drafted by ${TEAM_OWNER_MAP[champName]}` : "Neutral Team";
+            } else {
+                champTeamDisplay.textContent = "-"; champOwnerDisplay.textContent = "-";
+            }
+        }
+
+        function renderColumnNodes(roundCode, colId, eliminatedSet) {
+            const container = document.getElementById(colId); container.innerHTML = "";
+            matches.filter(m => m.round === roundCode).forEach(match => {
+                container.appendChild(buildMatchNode(match, eliminatedSet));
+            });
+        }
+
+        function buildMatchNode(match, eliminatedSet) {
+            const wrapper = document.createElement("div"); wrapper.className = "w-full";
+            const t1Name = match.t1 || "TBD Winner"; const t2Name = match.t2 || "TBD Winner";
+            const isCompleted = match.status === 'completed';
+            const isT1Eliminated = match.t1 ? eliminatedSet.has(match.t1) : false;
+            const isT2Eliminated = match.t2 ? eliminatedSet.has(match.t2) : false;
+
+            const t1Owner = TEAM_OWNER_MAP[match.t1] || "None";
+            const t2Owner = TEAM_OWNER_MAP[match.t2] || "None";
+
+            const t1Badge = match.t1 && t1Owner !== 'None' ? `<span class="owner-badge px-1 rounded text-[8px] font-extrabold player-${t1Owner}">${t1Owner}</span>` : "";
+            const t2Badge = match.t2 && t2Owner !== 'None' ? `<span class="owner-badge px-1 rounded text-[8px] font-extrabold player-${t2Owner}">${t2Owner}</span>` : "";
+
+            let titleLabel = `Match ${match.id}`;
+            if (match.round === 'Final') titleLabel = match.isBronze ? "3rd Place Playoff" : "Grand Final";
+
+            wrapper.innerHTML = `
+                <div onclick="openScoreEditor(${match.id})" class="bracket-node w-full rounded-xl bg-white border border-slate-200 p-3.5 cursor-pointer flex flex-col gap-2 relative shadow-2xs">
+                    <div class="flex items-center justify-between text-[9px] font-black text-slate-400 uppercase border-b border-slate-100 pb-1.5">
+                        <span>${titleLabel}</span>
+                        ${isCompleted ? '<span class="text-emerald-600 font-extrabold flex items-center gap-1">FT</span>' : ''}
+                    </div>
+                    <div class="flex items-center justify-between gap-2 ${isT1Eliminated ? 'eliminated-team' : ''}">
+                        <div class="flex items-center gap-1 truncate flex-grow">
+                            <span class="text-xs font-bold text-slate-700 truncate">${t1Name}</span> ${t1Badge}
+                        </div>
+                        <span class="text-xs font-black text-slate-800">${isCompleted ? match.s1 : '-'}${isCompleted && match.pso ? `<span class="text-[9px] text-slate-400 font-bold ml-0.5">(${match.p1})</span>` : ''}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 ${isT2Eliminated ? 'eliminated-team' : ''}">
+                        <div class="flex items-center gap-1 truncate flex-grow">
+                            <span class="text-xs font-bold text-slate-700 truncate">${t2Name}</span> ${t2Badge}
+                        </div>
+                        <span class="text-xs font-black text-slate-800">${isCompleted ? match.s2 : '-'}${isCompleted && match.pso ? `<span class="text-[9px] text-slate-400 font-bold ml-0.5">(${match.p2})</span>` : ''}</span>
+                    </div>
+                </div>
+            `;
+            return wrapper;
+        }
+
+        function toggleLiveAutoPlay() {
+            if (isSimulating) {
+                clearInterval(autoPlayInterval); autoPlayInterval = null; isSimulating = false;
+                updateSyncButtonUI(); document.getElementById("live-notification-banner").classList.add("hidden");
+            } else {
+                isSimulating = true; updateSyncButtonUI(); runLiveStep();
+                autoPlayInterval = setInterval(runLiveStep, 2000);
+            }
+        }
+
+        function updateSyncButtonUI() {
+            const btn = document.getElementById("live-sync-btn"); const icon = document.getElementById("sync-icon"); const text = document.getElementById("sync-text");
+            if (isSimulating) {
+                btn.className = "flex items-center gap-2 py-2 px-3.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold border border-rose-200 transition-all";
+                icon.textContent = "pause"; text.textContent = "Pause Simulation";
+            } else {
+                btn.className = "flex items-center gap-2 py-2 px-3.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-200 transition-all";
+                icon.textContent = "sync"; text.textContent = "Start Auto-Live Simulation";
+            }
+        }
+
+        function runLiveStep() {
+            const nextMatch = matches.find(m => m.status === 'upcoming' && m.t1 && m.t2);
+            if (!nextMatch) {
+                clearInterval(autoPlayInterval); autoPlayInterval = null; isSimulating = false; updateSyncButtonUI();
+                showLiveTickerAlert("🏁 DASHBOARD COMPLETED! We have crowned a Champion."); return;
+            }
+
+            const isFav1 = allTeamsMeta[nextMatch.t1] === 'powerhouse' || allTeamsMeta[nextMatch.t1] === 'favorite';
+            const isFav2 = allTeamsMeta[nextMatch.t2] === 'powerhouse' || allTeamsMeta[nextMatch.t2] === 'favorite';
+
+            let l1 = 1.4; let l2 = 1.4;
+            if (isFav1 && !isFav2) { l1 = 2.0; l2 = 0.8; } else if (!isFav1 && isFav2) { l1 = 0.8; l2 = 2.0; }
+
+            let s1 = poissonRandom(l1); let s2 = poissonRandom(l2);
+            let aet = false; let pso = false; let p1 = null; let p2 = null;
+
+            if (s1 === s2) {
+                aet = true; s1 += Math.random() < 0.3 ? 1 : 0; s2 += Math.random() < 0.3 ? 1 : 0;
+                if (s1 === s2) {
+                    pso = true; p1 = 5; p2 = 5;
+                    while (p1 === p2) { p1 = Math.floor(Math.random() * 5) + 2; p2 = Math.floor(Math.random() * 5) + 2; }
+                }
+            }
+
+            const resLabel = pso ? `(Pens: ${p1}-${p2})` : (aet ? "AET" : "");
+            showLiveTickerAlert(`🔴 RESULT: ${nextMatch.t1} ${s1} - ${s2} ${nextMatch.t2} ${resLabel}`);
+
+            nextMatch.s1 = s1; nextMatch.s2 = s2; nextMatch.aet = aet; nextMatch.pso = pso; nextMatch.p1 = p1; nextMatch.p2 = p2;
+            nextMatch.status = 'completed';
+
+            propagateBracketAllRounds(); saveToLocalStorage(); renderRosterMatrix(); renderBracketView();
+        }
+
+        function poissonRandom(lambda) {
+            let L = Math.exp(-lambda); let k = 0; let p = 1.0;
+            do { k++; p *= Math.random(); } while (p > L);
+            return k - 1;
+        }
+
+        function showLiveTickerAlert(text) {
+            const banner = document.getElementById("live-notification-banner");
+            document.getElementById("live-notification-text").textContent = text;
+            banner.classList.remove("hidden");
+        }
+
+        function instantAutoResolve() {
+            if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; isSimulating = false; updateSyncButtonUI(); }
+            let SafetyIt = 0;
+            while (matches.some(m => m.status === 'upcoming' && m.t1 && m.t2) && SafetyIt < 40) {
+                runLiveStep(); SafetyIt++;
+            }
+        }
+
+        function triggerResetBracketMatchesOnly() {
+            if(!confirm("Reset match bracket scoring predictions? Roster draft data will be preserved.")) return;
+            matches = JSON.parse(JSON.stringify(MATCHES_TEMPLATE));
+            document.getElementById("live-notification-banner").classList.add("hidden");
+            refreshDataStatePipelines();
+        }
+
+        function openScoreEditor(matchId) {
+            const match = matches.find(m => m.id === matchId);
+            if (!match || !match.t1 || !match.t2) return;
+
+            document.getElementById("editor-match-index").value = matches.indexOf(match);
+            document.getElementById("modal-match-id").textContent = `MATCH #${match.id}`;
+            document.getElementById("modal-match-title").textContent = `${match.t1} vs ${match.t2}`;
+            document.getElementById("editor-t1-name").textContent = match.t1;
+            document.getElementById("editor-t2-name").textContent = match.t2;
+
+            document.getElementById("editor-t1-score").value = match.status === 'completed' ? match.s1 : 0;
+            document.getElementById("editor-t2-score").value = match.status === 'completed' ? match.s2 : 0;
+
+            const t1Owner = TEAM_OWNER_MAP[match.t1] || "None";
+            const t2Owner = TEAM_OWNER_MAP[match.t2] || "None";
+            document.getElementById("editor-t1-badge").textContent = t1Owner;
+            document.getElementById("editor-t2-badge").textContent = t2Owner;
+
+            document.getElementById("editor-match-aet").checked = match.aet || false;
+            document.getElementById("editor-match-pso").checked = match.pso || false;
+            togglePsoFields(match.pso || false);
+            document.getElementById("editor-t1-pso-score").value = match.p1 || 0;
+            document.getElementById("editor-t2-pso-score").value = match.p2 || 0;
+
+            document.getElementById("score-editor-modal").classList.remove("hidden");
+        }
+
+        function togglePsoFields(checked) {
+            const container = document.getElementById("pso-scores-container");
+            if (checked) { container.classList.remove("hidden"); document.getElementById("editor-match-aet").checked = true; } 
+            else container.classList.add("hidden");
+        }
+
+        function closeScoreEditor() { document.getElementById("score-editor-modal").classList.add("hidden"); }
+
+        function saveScoreResults(event) {
+            event.preventDefault();
+            const idx = parseInt(document.getElementById("editor-match-index").value);
+            const s1 = parseInt(document.getElementById("editor-t1-score").value);
+            const s2 = parseInt(document.getElementById("editor-t2-score").value);
+            const aet = document.getElementById("editor-match-aet").checked;
+            const pso = document.getElementById("editor-match-pso").checked;
+
+            let p1 = null; let p2 = null;
+            if (pso) {
+                p1 = parseInt(document.getElementById("editor-t1-pso-score").value);
+                p2 = parseInt(document.getElementById("editor-t2-pso-score").value);
+                if (p1 === p2) { alert("Penalty shootout score must show a clear winner!"); return; }
+            } else if (s1 === s2) { alert("Knockouts must determine a winner via AET or PSO!"); return; }
+
+            matches[idx].s1 = s1; matches[idx].s2 = s2; matches[idx].aet = aet; matches[idx].pso = pso; matches[idx].p1 = p1; matches[idx].p2 = p2;
+            matches[idx].status = 'completed';
+
+            propagateBracketAllRounds(); saveToLocalStorage();
+            renderRosterMatrix(); renderBracketView(); closeScoreEditor();
+        }
+
+        function initTeamDragAndDrop() {
+            const container = document.getElementById('players-cards-container');
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault(); const target = e.target.closest('.card');
+                document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
+                if (target && draggedTeamData) target.classList.add('drag-over');
+            });
+            container.addEventListener('drop', (e) => {
+                e.preventDefault(); document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
+                const target = e.target.closest('.card');
+                if (!target || !draggedTeamData) return;
+
+                const targetPlayer = target.id.replace('draft-player-', '');
+                const { originPlayer, teamName, type } = draggedTeamData;
+                if (originPlayer === targetPlayer) return;
+
+                currentDraftState[originPlayer] = currentDraftState[originPlayer].filter(t => t.name !== teamName);
+                currentDraftState[targetPlayer].push({ name: teamName, type });
+                refreshDataStatePipelines();
+            });
+        }
+
+        window.onload = function() { initGlobalDashboard(); };
+    </script>
+</body>
+</html>

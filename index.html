@@ -511,11 +511,15 @@
             if (cachedDraft && cachedMatches) {
                 currentDraftState = JSON.parse(cachedDraft);
                 matches = JSON.parse(cachedMatches);
-                sideBets = cachedBets ? JSON.parse(cachedBets) : [];
+                sideBets = cachedBets ? JSON.parse(cachedBets) : [
+                    { from: "Fern", to: "Weylen", stake: "Free Lunch", details: "Argentina -1.5 vs Egypt" }
+                ];
             } else {
                 currentDraftState = JSON.parse(JSON.stringify(baselineDrawState));
                 matches = JSON.parse(JSON.stringify(MATCHES_TEMPLATE));
-                sideBets = [];
+                sideBets = [
+                    { from: "Fern", to: "Weylen", stake: "Free Lunch", details: "Argentina -1.5 vs Egypt" }
+                ];
             }
 
             rebuildOwnerMapLinks();
